@@ -120,6 +120,9 @@ class ExactInference(InferenceModule):
         for p in self.legalPositions: self.beliefs[p] = 1.0
         self.beliefs.normalize()
 
+        # for debug
+        self.counter = 0
+
     def observe(self, observation, gameState):
         """
         Updates beliefs based on the distance observation and Pacman's position.
@@ -149,24 +152,59 @@ class ExactInference(InferenceModule):
         pacmanPosition = gameState.getPacmanPosition()
 
         "*** YOUR CODE HERE ***"
-        # util.raiseNotDefined()
-        print(str(noisyDistance))
-        print(str(emissionModel))
-        print(str(pacmanPosition))
+        '''
+        noisy distnace 4
+        emission model {1: 0.081151832460733, 2: 0.08376963350785341, 3: 0.16753926701570682, 4: 0.33507853403141363, 5: 0.16753926701570682, 6: 0.08376963350785341, 7: 0.041884816753926704, 8: 0.020942408376963352, 9: 0.010471204188481676, 10: 0.005235602094240838, 11: 0.002617801047120419}
+        pacman position (5, 2)
+        '''
 
-        # Replace this code with a correct observation update
-        # Be sure to handle the "jail" edge case where the ghost is eaten
-        # and noisyDistance is None
+        # special case
+        # if noisyDistance == None:
+        #
+        #     jail = self.getJailPosition()
+        #
+        #     allPossible = util.Counter()
+        #     for p in self.legalPositions:
+        #         trueDistance = util.manhattanDistance(p, pacmanPosition)
+        #         if emissionModel[trueDistance] > 0:
+        #             allPossible[p] = jail
+
+        # all other cases
+
         allPossible = util.Counter()
         for p in self.legalPositions:
             trueDistance = util.manhattanDistance(p, pacmanPosition)
-            if emissionModel[trueDistance] > 0:
-                allPossible[p] = 1.0
+
+            if p == (5, 2):
+                print(str(self.beliefs[p]))
+                print(str(emissionModel[trueDistance]))
+                print("\n")
+
+            if emissionModel[trueDistance] > 0: # probability of it being this distance away given the noisy distance
+                allPossible[p] = emissionModel[trueDistance]
 
         "*** END YOUR CODE HERE ***"
+        # print("before normalize")
+        # for k, v in allPossible.items():
+        #     print(str(k) + " - " + str(v))
+        # print("\n")
+        #
+        # allPossible.normalize()
+        # # self.beliefs = allPossible
+        # print("after normalize")
+        # for k, v in allPossible.items():
+        #     print(str(k) + " - " + str(v))
 
-        allPossible.normalize()
-        self.beliefs = allPossible
+        # special case
+        if noisyDistance == None:
+            jail = self.getJailPosition()
+
+            for key in self.beliefs.keys():
+                self.beliefs[key] = jail
+        # end of special case
+
+        for key in allPossible.keys():
+            self.beliefs[key] = allPossible[key]
 
     def elapseTime(self, gameState):
         """
