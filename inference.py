@@ -120,6 +120,9 @@ class ExactInference(InferenceModule):
         for p in self.legalPositions: self.beliefs[p] = 1.0
         self.beliefs.normalize()
 
+        # for debug
+        self.counter = 0
+
     def observe(self, observation, gameState):
         """
         Updates beliefs based on the distance observation and Pacman's position.
@@ -149,16 +152,23 @@ class ExactInference(InferenceModule):
         pacmanPosition = gameState.getPacmanPosition()
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        '''
+        noisy distnace 4
+        emission model {1: 0.081151832460733, 2: 0.08376963350785341, 3: 0.16753926701570682, 4: 0.33507853403141363, 5: 0.16753926701570682, 6: 0.08376963350785341, 7: 0.041884816753926704, 8: 0.020942408376963352, 9: 0.010471204188481676, 10: 0.005235602094240838, 11: 0.002617801047120419}
+        pacman position (5, 2)
+        '''
 
-        # Replace this code with a correct observation update
-        # Be sure to handle the "jail" edge case where the ghost is eaten
-        # and noisyDistance is None
         allPossible = util.Counter()
-        for p in self.legalPositions:
-            trueDistance = util.manhattanDistance(p, pacmanPosition)
-            if emissionModel[trueDistance] > 0:
-                allPossible[p] = 1.0
+        if noisyDistance == None:
+            jail = self.getJailPosition()
+            # for p in self.legalPositions:
+            #     allPossible[p] = 0
+            allPossible[jail] = 1.0
+        else:
+            for p in self.legalPositions:
+                trueDistance = util.manhattanDistance(p, pacmanPosition)
+                if emissionModel[trueDistance] > 0:  # probability of it being this distance away given the noisy distance
+                    allPossible[p] = self.beliefs[p]*emissionModel[trueDistance]
 
         "*** END YOUR CODE HERE ***"
 
