@@ -158,53 +158,22 @@ class ExactInference(InferenceModule):
         pacman position (5, 2)
         '''
 
-        # special case
-        # if noisyDistance == None:
-        #
-        #     jail = self.getJailPosition()
-        #
-        #     allPossible = util.Counter()
-        #     for p in self.legalPositions:
-        #         trueDistance = util.manhattanDistance(p, pacmanPosition)
-        #         if emissionModel[trueDistance] > 0:
-        #             allPossible[p] = jail
-
-        # all other cases
-
         allPossible = util.Counter()
-        for p in self.legalPositions:
-            trueDistance = util.manhattanDistance(p, pacmanPosition)
-
-            if p == (5, 2):
-                print(str(self.beliefs[p]))
-                print(str(emissionModel[trueDistance]))
-                print("\n")
-
-            if emissionModel[trueDistance] > 0: # probability of it being this distance away given the noisy distance
-                allPossible[p] = emissionModel[trueDistance]
-
-        "*** END YOUR CODE HERE ***"
-        # print("before normalize")
-        # for k, v in allPossible.items():
-        #     print(str(k) + " - " + str(v))
-        # print("\n")
-        #
-        # allPossible.normalize()
-        # # self.beliefs = allPossible
-        # print("after normalize")
-        # for k, v in allPossible.items():
-        #     print(str(k) + " - " + str(v))
-
-        # special case
         if noisyDistance == None:
             jail = self.getJailPosition()
+            # for p in self.legalPositions:
+            #     allPossible[p] = 0
+            allPossible[jail] = 1.0
+        else:
+            for p in self.legalPositions:
+                trueDistance = util.manhattanDistance(p, pacmanPosition)
+                if emissionModel[trueDistance] > 0:  # probability of it being this distance away given the noisy distance
+                    allPossible[p] = self.beliefs[p]*emissionModel[trueDistance]
 
-            for key in self.beliefs.keys():
-                self.beliefs[key] = jail
-        # end of special case
+        "*** END YOUR CODE HERE ***"
 
-        for key in allPossible.keys():
-            self.beliefs[key] = allPossible[key]
+        allPossible.normalize()
+        self.beliefs = allPossible
 
     def elapseTime(self, gameState):
         """
