@@ -265,7 +265,15 @@ class ParticleFilter(InferenceModule):
         Storing your particles as a Counter (where there could be an associated
         weight with each position) is incorrect and may produce errors.
         """
-        "*** YOUR CODE HERE ***"
+        positions = self.legalPositions
+        atEachPos = len(positions)/self.numParticles
+        particles = []
+        for x in positions:
+            for i in range(atEachPos):
+                particles.append(x)
+        return particles
+
+
 
     def observe(self, observation, gameState):
         """
