@@ -151,13 +151,6 @@ class ExactInference(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
 
-        "*** YOUR CODE HERE ***"
-        '''
-        noisy distnace 4
-        emission model {1: 0.081151832460733, 2: 0.08376963350785341, 3: 0.16753926701570682, 4: 0.33507853403141363, 5: 0.16753926701570682, 6: 0.08376963350785341, 7: 0.041884816753926704, 8: 0.020942408376963352, 9: 0.010471204188481676, 10: 0.005235602094240838, 11: 0.002617801047120419}
-        pacman position (5, 2)
-        '''
-
         allPossible = util.Counter()
         if noisyDistance == None:
             jail = self.getJailPosition()
@@ -169,8 +162,6 @@ class ExactInference(InferenceModule):
                 trueDistance = util.manhattanDistance(p, pacmanPosition)
                 if emissionModel[trueDistance] > 0:  # probability of it being this distance away given the noisy distance
                     allPossible[p] = self.beliefs[p]*emissionModel[trueDistance]
-
-        "*** END YOUR CODE HERE ***"
 
         allPossible.normalize()
         self.beliefs = allPossible
@@ -228,7 +219,6 @@ class ExactInference(InferenceModule):
         are used and how they combine to give us a belief distribution over new
         positions after a time update from a particular position.
         """
-        "*** YOUR CODE HERE ***"
         allPossible = util.Counter()
 
         for ghostPos in self.legalPositions:
