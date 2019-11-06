@@ -249,9 +249,10 @@ class ParticleFilter(InferenceModule):
         InferenceModule.__init__(self, ghostAgent);
         self.setNumParticles(numParticles)
 
+        self.particles = None
+
     def setNumParticles(self, numParticles):
         self.numParticles = numParticles
-
 
     def initializeUniformly(self, gameState):
         """
@@ -265,15 +266,16 @@ class ParticleFilter(InferenceModule):
         Storing your particles as a Counter (where there could be an associated
         weight with each position) is incorrect and may produce errors.
         """
-        positions = self.legalPositions
-        atEachPos = len(positions)/self.numParticles
-        particles = []
-        for x in positions:
-            for i in range(atEachPos):
-                particles.append(x)
-        return particles
+        # positions = self.legalPositions
+        # atEachPos = self.numParticles/len(positions)
+        # particles = []
+        # for x in positions:
+        #     for i in range(atEachPos):
+        #         particles.append(x)
+        # self.particles = particles
 
-
+        print("number of particles " + str(self.numParticles))
+        print("number of legal positions " + str(self.legalPositions))
 
     def observe(self, observation, gameState):
         """
@@ -303,7 +305,7 @@ class ParticleFilter(InferenceModule):
         distance between a particle and Pacman's position.
         """
         noisyDistance = observation
-        emissionModel = busters.getObservationDistribution(noisyDistance)
+        emissionModel = busters.getObservationDistribution(noisyDistance) # prob noisy distance given true distance
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
@@ -333,7 +335,11 @@ class ParticleFilter(InferenceModule):
         Counter object)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        allPossible = util.Counter()
+        for pos in self.particles:
+            allPossible[pos] += 1
+        allPossible.normalize()
+        return allPossible
 
 class MarginalInference(InferenceModule):
     """
