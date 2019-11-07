@@ -301,14 +301,13 @@ class ParticleFilter(InferenceModule):
         noisyDistance = observation
         emissionModel = busters.getObservationDistribution(noisyDistance) # prob noisy distance given true distance
         pacmanPosition = gameState.getPacmanPosition()
-        "*** YOUR CODE HERE ***"
 
         # create new local variable W, a vector of weighted counts for each value of X, initially zero
         W = util.Counter()
 
         if noisyDistance == None:
             jailPos = self.getJailPosition()
-            self.particles = [jailPos]
+            #self.particles = [jailPos]
             # jailPos = self.getJailPosition()
             for pos in self.legalPositions:
                 if pos != jailPos:
@@ -322,6 +321,7 @@ class ParticleFilter(InferenceModule):
             # for key, val in debug.items():
             #     print(str(key) + ": " + str(val))
             # print("debug ends\n")
+            #self.particles = [jailPos]*self.numParticles
 
             self.particles = util.nSample(W.values(), W.keys(), self.numParticles)
 
@@ -352,17 +352,21 @@ class ParticleFilter(InferenceModule):
         util.sample(Counter object) is a helper method to generate a sample from
         a belief distribution.
         """
-        "*** YOUR CODE HERE ***"
         W = util.Counter()
+        #getting beliefs
+        beliefDist = self.getBeliefDistribution()
+        #loop through ghost positions
         for pos in self.legalPositions:
             newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, pos))
             for newPos, prob in newPosDist.items():
-                W[newPos] += self.getBeliefDistribution()[newPos]*prob
+                #sum up probabilities of where the ghost could be if it was at pos before
+                W[newPos] += beliefDist[pos]*prob
+
         if W.totalCount() == 0:
             self.particles = self.initializeUniformly(gameState)
         else:
             self.particles = util.nSample(W.values(), W.keys(), self.numParticles)
-        W.normalize()
+
         return W
 
     def getBeliefDistribution(self):
@@ -372,7 +376,6 @@ class ParticleFilter(InferenceModule):
         essentially converts a list of particles into a belief distribution (a
         Counter object)
         """
-        "*** YOUR CODE HERE ***"
         allPossible = util.Counter()
         for pos in self.particles:
             allPossible[pos] += 1
