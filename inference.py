@@ -325,18 +325,18 @@ class ParticleFilter(InferenceModule):
 
             self.particles = util.nSample(W.values(), W.keys(), self.numParticles)
 
-            return W
-
-        for pos in self.legalPositions:
-            trueDistance = util.manhattanDistance(pos, pacmanPosition)
-            W[pos] = self.getBeliefDistribution()[pos]*emissionModel[trueDistance]
-
-        if W.totalCount() == 0:
-            self.particles = self.initializeUniformly(gameState)
         else:
-            self.particles = util.nSample(W.values(), W.keys(), self.numParticles)
 
-        return W
+            for pos in self.legalPositions:
+                trueDistance = util.manhattanDistance(pos, pacmanPosition)
+                W[pos] = self.getBeliefDistribution()[pos]*emissionModel[trueDistance]
+
+            if W.totalCount() == 0:
+                self.particles = self.initializeUniformly(gameState)
+            else:
+                self.particles = util.nSample(W.values(), W.keys(), self.numParticles)
+
+
 
     def elapseTime(self, gameState):
         """
@@ -367,7 +367,7 @@ class ParticleFilter(InferenceModule):
         else:
             self.particles = util.nSample(W.values(), W.keys(), self.numParticles)
 
-        return W
+
 
     def getBeliefDistribution(self):
         """
