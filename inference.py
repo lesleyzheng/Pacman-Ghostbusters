@@ -363,15 +363,6 @@ class ParticleFilter(InferenceModule):
         for pos in self.particles:
             allPossible[pos] += 1
         allPossible.normalize()
-
-        # print("debug")
-        # debug = util.Counter()
-        # for particle in self.particles:
-        #     debug[particle] += 1
-        # for key, val in debug.items():
-        #     print(str(key) + ": " + str(val))
-        # print("debug ends\n")
-
         return allPossible
 
 class MarginalInference(InferenceModule):
@@ -445,6 +436,25 @@ class JointParticleFilter:
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
+        positions = self.legalPositions
+        ghost_positions = itertools.product(positions,positions)
+        ghost_positions = random.shuffle(ghost_positions)
+
+        atEach = self.numParticles / len(ghost_positions)  # self.numParticles
+        remainder = self.numParticles % len(ghost_positions)
+        # don't throw out a particle
+        particles = []
+        # populate particles
+        for pos in ghost_positions:
+            for num in range(atEach):
+                particles.append(pos)
+        # now populate the remainders
+        for index in range(remainder):
+            particles.append(ghost_positions[index])
+        # save to self.particles
+        self.particles = particles
+        return particles
+
 
     def addGhostAgent(self, agent):
         """
@@ -559,7 +569,11 @@ class JointParticleFilter:
 
     def getBeliefDistribution(self):
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        allPossible = util.Counter()
+        for pos in self.particles:
+            allPossible[pos] += 1
+        allPossible.normalize()
+        return allPossible
 
 # One JointInference module is shared globally across instances of MarginalInference
 jointInference = JointParticleFilter()
