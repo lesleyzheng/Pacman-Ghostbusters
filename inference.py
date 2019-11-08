@@ -260,16 +260,20 @@ class ParticleFilter(InferenceModule):
         weight with each position) is incorrect and may produce errors.
         """
         positions = self.legalPositions
-        atEachPos = self.numParticles/len(positions)
+        atEach = self.numParticles/len(positions) #self.numParticles
+        remainder = self.numParticles%len(positions)
+        #don't throw out a particle
         particles = []
-        for x in positions:
-            for i in range(atEachPos):
-                particles.append(x)
+        # populate particles
+        for pos in positions:
+            for num in range(atEach):
+                particles.append(pos)
+        # now populate the remainders
+        for index in range(remainder):
+            particles.append(positions[index])
+        # save to self.particles
         self.particles = particles
         return particles
-
-        # print("number of particles " + str(self.numParticles))
-        # print("number of legal positions " + str(self.legalPositions))
 
     def observe(self, observation, gameState):
         """
@@ -307,36 +311,27 @@ class ParticleFilter(InferenceModule):
 
         if noisyDistance == None:
             jailPos = self.getJailPosition()
-            #self.particles = [jailPos]
-            # jailPos = self.getJailPosition()
             for pos in self.legalPositions:
                 if pos != jailPos:
                     W[pos] = 0
             W[jailPos] = 1
-
-            # print("debug")
-            # debug = util.Counter()
-            # for particle in self.particles:
-            #     debug[particle] += 1
-            # for key, val in debug.items():
-            #     print(str(key) + ": " + str(val))
-            # print("debug ends\n")
-            #self.particles = [jailPos]*self.numParticles
-
-            self.particles = util.nSample(W.values(), W.keys(), self.numParticles)
-
+            self.particles = [jailPos]*self.numParticles
         else:
+            beliefDist = self.getBeliefDistribution()
 
             for pos in self.legalPositions:
                 trueDistance = util.manhattanDistance(pos, pacmanPosition)
-                W[pos] = self.getBeliefDistribution()[pos]*emissionModel[trueDistance]
+                W[pos] = beliefDist[pos]*emissionModel[trueDistance]
 
             if W.totalCount() == 0:
                 self.particles = self.initializeUniformly(gameState)
             else:
-                self.particles = util.nSample(W.values(), W.keys(), self.numParticles)
-
-
+                values = []
+                keys = []
+                for key, value in W.items():
+                    keys.append(key)
+                    values.append(value)
+                self.particles = util.nSample(values, keys, self.numParticles)
 
     def elapseTime(self, gameState):
         """
@@ -352,22 +347,10 @@ class ParticleFilter(InferenceModule):
         util.sample(Counter object) is a helper method to generate a sample from
         a belief distribution.
         """
-        W = util.Counter()
-        #getting beliefs
-        beliefDist = self.getBeliefDistribution()
-        #loop through ghost positions
-        for pos in self.legalPositions:
-            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, pos))
-            for newPos, prob in newPosDist.items():
-                #sum up probabilities of where the ghost could be if it was at pos before
-                W[newPos] += beliefDist[pos]*prob
-
-        if W.totalCount() == 0:
-            self.particles = self.initializeUniformly(gameState)
-        else:
-            self.particles = util.nSample(W.values(), W.keys(), self.numParticles)
-
-
+        # loop through particles
+        for i in range(len(self.particles)):
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, self.particles[i])) # transition prob
+            self.particles[i] = util.sample(newPosDist)
 
     def getBeliefDistribution(self):
         """
