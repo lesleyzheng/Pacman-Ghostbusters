@@ -392,6 +392,7 @@ class MarginalInference(InferenceModule):
         jointDistribution = jointInference.getBeliefDistribution()
         dist = util.Counter()
         for t, prob in jointDistribution.items():
+            # print(str(self.index))
             dist[t[self.index - 1]] += prob
         return dist
 
@@ -543,11 +544,11 @@ class JointParticleFilter:
 
             #jail
             for ghost_num in range(self.numGhosts):
-                print("here")
+                # print("here")
                 # check if in jail
                 if noisyDistances[ghost_num] is None:
-                    print("inside")
-                    print(str(self.getJailPosition(ghost_num)))
+                    # print("inside")
+                    # print(str(self.getJailPosition(ghost_num)))
                     # place that ghost in jail for every particle
                     for p in range(len(self.particles)):
                         self.particles[p] = self.getParticleWithGhostInJail(self.particles[p], ghost_num)
