@@ -504,13 +504,6 @@ class JointParticleFilter:
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
         "*** YOUR CODE HERE ***"
-        # for ghost_num in range(self.numGhosts):
-        #
-        #     #check if in jail
-        #     if noisyDistances[ghost_num] is None:
-        #         #place that ghost in jail for every particle
-        #         for p in range(len(self.particles)):
-        #             self.particles[p] = self.getParticleWithGhostInJail(self.particles[p], ghost_num)
 
         W = util.Counter()
         beliefDist = self.getBeliefDistribution()
@@ -519,19 +512,24 @@ class JointParticleFilter:
 
             for ghost in range(self.numGhosts):
 
-                probability = 1
+                probability=1
 
                 if noisyDistances[ghost] is None:
+                    print("this happened")
                     pass
                 else:
                     trueDistance = util.manhattanDistance(ghost_position[ghost], pacmanPosition)
-                    # probability *= emissionModels[ghost][trueDistance]
-                    W[ghost_position] += beliefDist[ghost_position]*emissionModels[ghost][trueDistance]
-                    print("belief distribution in ghost position " + str(beliefDist[ghost_position]))
-                    print("probability from emission model " + str(emissionModels[ghost][trueDistance]) + "\n")
-                # W[ghost_position] = beliefDist[ghost_position]*probability
-        # input()
+                    probability += emissionModels[ghost][trueDistance]
+                    # W[ghost_position] += beliefDist[ghost_position]*emissionModels[ghost][trueDistance]
+                    # print("belief distribution in ghost position " + str(beliefDist[ghost_position]))
+                    # print("probability from emission model " + str(emissionModels[ghost][trueDistance]) + "\n")
+                    # W[ghost_position] *= emissionModels[ghost][trueDistance]
 
+            W[ghost_position] = beliefDist[ghost_position]*probability
+
+            # W[ghost_position] *= beliefDist[ghost_position]
+
+        # input()
         if W.totalCount() == 0:
             self.particles = self.initializeParticles()
         else:
@@ -547,12 +545,8 @@ class JointParticleFilter:
                 # print("here")
                 # check if in jail
                 if noisyDistances[ghost_num] is None:
-                    # print("inside")
-                    # print(str(self.getJailPosition(ghost_num)))
-                    # place that ghost in jail for every particle
                     for p in range(len(self.particles)):
                         self.particles[p] = self.getParticleWithGhostInJail(self.particles[p], ghost_num)
-            # input()
 
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
@@ -627,10 +621,10 @@ class JointParticleFilter:
         allPossible.normalize()
 
         # debug
-        print("belief dist")
-        for k, v in allPossible.items():
-            print(str(k) + ": " + str(v))
-        print("\n")
+        # print("belief dist")
+        # for k, v in allPossible.items():
+        #     print(str(k) + ": " + str(v))
+        # print("\n")
 
         return allPossible
 
