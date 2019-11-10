@@ -392,6 +392,7 @@ class MarginalInference(InferenceModule):
         jointDistribution = jointInference.getBeliefDistribution()
         dist = util.Counter()
         for t, prob in jointDistribution.items():
+            # print(str(self.index))
             dist[t[self.index - 1]] += prob
         return dist
 
@@ -457,7 +458,6 @@ class JointParticleFilter:
         self.particles = particles
         return particles
 
-
     def addGhostAgent(self, agent):
         """
         Each ghost agent is registered separately and stored (in case they are
@@ -504,24 +504,33 @@ class JointParticleFilter:
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
         "*** YOUR CODE HERE ***"
-        for ghost_num in range(self.numGhosts):
-
-            # create local W variable for that one particular ghost
-            W = util.Counter()
-
-            #check if in jail
-            if noisyDistances[ghost_num] is None:
-                #place that ghost in jail for every particle
-                for p in range(len(self.particles)):
-                    self.particles[p] = self.getParticleWithGhostInJail(self.particles[p], ghost_num)
+        # for ghost_num in range(self.numGhosts):
+        #
+        #     #check if in jail
+        #     if noisyDistances[ghost_num] is None:
+        #         #place that ghost in jail for every particle
+        #         for p in range(len(self.particles)):
+        #             self.particles[p] = self.getParticleWithGhostInJail(self.particles[p], ghost_num)
 
         W = util.Counter()
         beliefDist = self.getBeliefDistribution()
+
         for ghost_position in self.ghost_positions:
 
             for ghost in range(self.numGhosts):
-                trueDistance = util.manhattanDistance(ghost_position[ghost], pacmanPosition)
-                W[ghost_position] += beliefDist[ghost_position]*emissionModels[ghost][trueDistance]
+
+                probability = 1
+
+                if noisyDistances[ghost] is None:
+                    pass
+                else:
+                    trueDistance = util.manhattanDistance(ghost_position[ghost], pacmanPosition)
+                    # probability *= emissionModels[ghost][trueDistance]
+                    W[ghost_position] += beliefDist[ghost_position]*emissionModels[ghost][trueDistance]
+                    print("belief distribution in ghost position " + str(beliefDist[ghost_position]))
+                    print("probability from emission model " + str(emissionModels[ghost][trueDistance]) + "\n")
+                # W[ghost_position] = beliefDist[ghost_position]*probability
+        # input()
 
         if W.totalCount() == 0:
             self.particles = self.initializeParticles()
@@ -532,6 +541,19 @@ class JointParticleFilter:
                 keys.append(key)
                 values.append(value)
             self.particles = util.nSample(values, keys, self.numParticles)
+
+            #jail
+            for ghost_num in range(self.numGhosts):
+                # print("here")
+                # check if in jail
+                if noisyDistances[ghost_num] is None:
+                    # print("inside")
+                    # print(str(self.getJailPosition(ghost_num)))
+                    # place that ghost in jail for every particle
+                    for p in range(len(self.particles)):
+                        self.particles[p] = self.getParticleWithGhostInJail(self.particles[p], ghost_num)
+            # input()
+
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
         """
@@ -603,6 +625,13 @@ class JointParticleFilter:
         for pos in self.particles:
             allPossible[pos] += 1
         allPossible.normalize()
+
+        # debug
+        print("belief dist")
+        for k, v in allPossible.items():
+            print(str(k) + ": " + str(v))
+        print("\n")
+
         return allPossible
 
 # One JointInference module is shared globally across instances of MarginalInference
