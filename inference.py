@@ -527,10 +527,9 @@ class JointParticleFilter:
                     trueDistance = util.manhattanDistance(ghost_position[ghost], pacmanPosition)
                     # probability *= emissionModels[ghost][trueDistance]
                     W[ghost_position] += beliefDist[ghost_position]*emissionModels[ghost][trueDistance]
-                    print("belief distribution in ghost position " + str(beliefDist[ghost_position]))
-                    print("probability from emission model " + str(emissionModels[ghost][trueDistance]) + "\n")
+                    #print("belief distribution in ghost position " + str(beliefDist[ghost_position]))
+                    #print("probability from emission model " + str(emissionModels[ghost][trueDistance]) + "\n")
                 # W[ghost_position] = beliefDist[ghost_position]*probability
-        # input()
 
         if W.totalCount() == 0:
             self.particles = self.initializeParticles()
@@ -608,14 +607,17 @@ class JointParticleFilter:
               self.ghostAgents[ghostIndex-1], but in this project all ghost
               agents are always the same.
         """
+
         newParticles = []
         for oldParticle in self.particles:
             newParticle = list(oldParticle) # A list of ghost positions
             # now loop through and update each entry in newParticle...
-
-            "*** YOUR CODE HERE ***"
-
-            "*** END YOUR CODE HERE ***"
+            for i in range(self.numGhosts):
+                #distribution for each particular ghost based on all ghost positions
+                newPosDist = getPositionDistributionForGhost(
+                    setGhostPositions(gameState, oldParticle), i, self.ghostAgents[i]
+                )
+                newParticle[i] = util.sample(newPosDist)
             newParticles.append(tuple(newParticle))
         self.particles = newParticles
 
@@ -627,11 +629,12 @@ class JointParticleFilter:
         allPossible.normalize()
 
         # debug
+        """
         print("belief dist")
         for k, v in allPossible.items():
             print(str(k) + ": " + str(v))
         print("\n")
-
+"""
         return allPossible
 
 # One JointInference module is shared globally across instances of MarginalInference
