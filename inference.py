@@ -519,6 +519,8 @@ class JointParticleFilter:
         #             self.particles[p] = self.getParticleWithGhostInJail(self.particles[p], ghost_num)
 
         W = util.Counter()
+        counter = util.Counter()
+        Mass = util.Counter()
         beliefDist = self.getBeliefDistribution()
 
         # for ghost_position in self.ghost_positions:
@@ -542,12 +544,17 @@ class JointParticleFilter:
                 trueDistance = util.manhattanDistance(p[ghost], pacmanPosition)
                 W[p] += beliefDist[p]*emissionModels[ghost][trueDistance]
 
-        if W.totalCount() == 0:
+            counter[p] += 1
+
+        for position, num in counter.items():
+            Mass[position] = num*W[position]
+
+        if Mass.totalCount() == 0:
             self.particles = self.initializeParticles()
         else:
             values = []
             keys = []
-            for key, value in W.items():
+            for key, value in Mass.items():
                 keys.append(key)
                 values.append(value)
             self.particles = util.nSample(values, keys, self.numParticles)
