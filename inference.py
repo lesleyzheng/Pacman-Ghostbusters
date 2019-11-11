@@ -317,11 +317,17 @@ class ParticleFilter(InferenceModule):
             # W[jailPos] = 1
             self.particles = [jailPos]*self.numParticles
         else:
+
             beliefDist = self.getBeliefDistribution()
 
-            for pos in self.legalPositions:
-                trueDistance = util.manhattanDistance(pos, pacmanPosition)
-                W[pos] = beliefDist[pos]*emissionModel[trueDistance]
+            for p in self.particles:
+                # p_new = beliefDist[p]
+                trueDistance = util.manhattanDistance(p, pacmanPosition)
+                W[p] = beliefDist[p] * emissionModel[trueDistance]
+
+            # for pos in self.legalPositions:
+            #     trueDistance = util.manhattanDistance(pos, pacmanPosition)
+            #     W[pos] = beliefDist[pos]*emissionModel[trueDistance]
 
             if W.totalCount() == 0:
                 self.particles = self.initializeUniformly(gameState)
@@ -515,21 +521,26 @@ class JointParticleFilter:
         W = util.Counter()
         beliefDist = self.getBeliefDistribution()
 
-        for ghost_position in self.ghost_positions:
+        # for ghost_position in self.ghost_positions:
+        #
+        #     for ghost in range(self.numGhosts):
+        #
+        #         probability = 1
+        #
+        #         if noisyDistances[ghost] is None:
+        #             pass
+        #         else:
+        #             trueDistance = util.manhattanDistance(ghost_position[ghost], pacmanPosition)
+        #             W[ghost_position] += beliefDist[ghost_position]*emissionModels[ghost][trueDistance]
+
+        for p in self.particles:
 
             for ghost in range(self.numGhosts):
-
-                probability = 1
-
-                if noisyDistances[ghost] is None:
-                    pass
-                else:
-                    trueDistance = util.manhattanDistance(ghost_position[ghost], pacmanPosition)
-                    # probability *= emissionModels[ghost][trueDistance]
-                    W[ghost_position] += beliefDist[ghost_position]*emissionModels[ghost][trueDistance]
-                    #print("belief distribution in ghost position " + str(beliefDist[ghost_position]))
-                    #print("probability from emission model " + str(emissionModels[ghost][trueDistance]) + "\n")
-                # W[ghost_position] = beliefDist[ghost_position]*probability
+                # if noisyDistances[ghost] is None:
+                #     pass
+                # else:
+                trueDistance = util.manhattanDistance(p[ghost], pacmanPosition)
+                W[p] += beliefDist[p]*emissionModels[ghost][trueDistance]
 
         if W.totalCount() == 0:
             self.particles = self.initializeParticles()
