@@ -311,22 +311,13 @@ class ParticleFilter(InferenceModule):
 
         if noisyDistance == None:
             jailPos = self.getJailPosition()
-            # for pos in self.legalPositions:
-            #     if pos != jailPos:
-            #         W[pos] = 0
-            # W[jailPos] = 1
             self.particles = [jailPos]*self.numParticles
         else:
             beliefDist = self.getBeliefDistribution()
 
             for p in self.particles:
-                # p_new = beliefDist[p]
                 trueDistance = util.manhattanDistance(p, pacmanPosition)
                 W[p] = beliefDist[p] * emissionModel[trueDistance]
-
-            # for pos in self.legalPositions:
-            #     trueDistance = util.manhattanDistance(pos, pacmanPosition)
-            #     W[pos] = beliefDist[pos]*emissionModel[trueDistance]
 
             if W.totalCount() == 0:
                 self.particles = self.initializeUniformly(gameState)
@@ -441,7 +432,6 @@ class JointParticleFilter:
         Storing your particles as a Counter (where there could be an associated
         weight with each position) is incorrect and may produce errors.
         """
-        "*** YOUR CODE HERE ***"
         positions = self.legalPositions
         ghost_positions = list(itertools.product(positions, positions))
         num_positions = len(ghost_positions)
@@ -508,26 +498,23 @@ class JointParticleFilter:
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
 
-
-
-
         for ghost_num in range(self.numGhosts):
-            # check if in jail
             beliefDist = self.getBeliefDistribution()
             W = util.Counter()
+
+            #check if ghost is in jail
             if noisyDistances[ghost_num] is None:
-                print("in jail")
                 # place that ghost in jail for every particle
                 for p in range(len(self.particles)):
                     self.particles[p] = self.getParticleWithGhostInJail(self.particles[p], ghost_num)
                     W[self.particles[p]] = 1.0
-                for key, value in W.items():
-                    if key[ghost_num] != self.getJailPosition(ghost_num):
-                        W[key] = 0.0
+
             else:
                 for p in self.particles:
                     trueDistance = util.manhattanDistance(p[ghost_num], pacmanPosition)
                     W[p] = (beliefDist[p] * emissionModels[ghost_num][trueDistance])
+
+                #we resample after we get weights for each ghost
                 if W.totalCount() == 0:
                     self.particles = self.initializeParticles()
                 else:
