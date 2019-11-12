@@ -319,9 +319,14 @@ class ParticleFilter(InferenceModule):
         else:
             beliefDist = self.getBeliefDistribution()
 
-            for pos in self.legalPositions:
-                trueDistance = util.manhattanDistance(pos, pacmanPosition)
-                W[pos] = beliefDist[pos]*emissionModel[trueDistance]
+            for p in self.particles:
+                # p_new = beliefDist[p]
+                trueDistance = util.manhattanDistance(p, pacmanPosition)
+                W[p] = beliefDist[p] * emissionModel[trueDistance]
+
+            # for pos in self.legalPositions:
+            #     trueDistance = util.manhattanDistance(pos, pacmanPosition)
+            #     W[pos] = beliefDist[pos]*emissionModel[trueDistance]
 
             if W.totalCount() == 0:
                 self.particles = self.initializeUniformly(gameState)
@@ -455,6 +460,7 @@ class JointParticleFilter:
         for index in range(remainder):
             particles.append(ghost_positions[index])
         # save to self.particles
+        random.shuffle(particles)
         self.particles = particles
         return particles
 
@@ -499,59 +505,39 @@ class JointParticleFilter:
         """
         pacmanPosition = gameState.getPacmanPosition()
         noisyDistances = gameState.getNoisyGhostDistances()
-        if len(noisyDistances) < self.numGhosts:
-            return
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
-        "*** YOUR CODE HERE ***"
-        # for ghost_num in range(self.numGhosts):
-        #
-        #     #check if in jail
-        #     if noisyDistances[ghost_num] is None:
-        #         #place that ghost in jail for every particle
-        #         for p in range(len(self.particles)):
-        #             self.particles[p] = self.getParticleWithGhostInJail(self.particles[p], ghost_num)
 
-        W = util.Counter()
-        beliefDist = self.getBeliefDistribution()
 
-        for ghost_position in self.ghost_positions:
 
-            for ghost in range(self.numGhosts):
 
-                probability = 1
-
-                if noisyDistances[ghost] is None:
-                    pass
+        for ghost_num in range(self.numGhosts):
+            # check if in jail
+            beliefDist = self.getBeliefDistribution()
+            W = util.Counter()
+            if noisyDistances[ghost_num] is None:
+                print("in jail")
+                # place that ghost in jail for every particle
+                for p in range(len(self.particles)):
+                    self.particles[p] = self.getParticleWithGhostInJail(self.particles[p], ghost_num)
+                    W[self.particles[p]] = 1.0
+                for key, value in W.items():
+                    if key[ghost_num] != self.getJailPosition(ghost_num):
+                        W[key] = 0.0
+            else:
+                for p in self.particles:
+                    trueDistance = util.manhattanDistance(p[ghost_num], pacmanPosition)
+                    W[p] = (beliefDist[p] * emissionModels[ghost_num][trueDistance])
+                if W.totalCount() == 0:
+                    self.particles = self.initializeParticles()
                 else:
-                    trueDistance = util.manhattanDistance(ghost_position[ghost], pacmanPosition)
-                    # probability *= emissionModels[ghost][trueDistance]
-                    W[ghost_position] += beliefDist[ghost_position]*emissionModels[ghost][trueDistance]
-                    #print("belief distribution in ghost position " + str(beliefDist[ghost_position]))
-                    #print("probability from emission model " + str(emissionModels[ghost][trueDistance]) + "\n")
-                # W[ghost_position] = beliefDist[ghost_position]*probability
+                    values = []
+                    keys = []
+                    for key, value in W.items():
+                        keys.append(key)
+                        values.append(value)
+                    self.particles = util.nSample(values, keys, self.numParticles)
 
-        if W.totalCount() == 0:
-            self.particles = self.initializeParticles()
-        else:
-            values = []
-            keys = []
-            for key, value in W.items():
-                keys.append(key)
-                values.append(value)
-            self.particles = util.nSample(values, keys, self.numParticles)
-
-            #jail
-            for ghost_num in range(self.numGhosts):
-                # print("here")
-                # check if in jail
-                if noisyDistances[ghost_num] is None:
-                    # print("inside")
-                    # print(str(self.getJailPosition(ghost_num)))
-                    # place that ghost in jail for every particle
-                    for p in range(len(self.particles)):
-                        self.particles[p] = self.getParticleWithGhostInJail(self.particles[p], ghost_num)
-            # input()
 
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
